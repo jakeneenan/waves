@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://kit.fontawesome.com/e019c793cb.js" crossorigin="anonymous"></script>
+    <title>What's in a wave?</title>
+    <script type="text/javascript">
+      (function() {
+          // only want one resizer on the page
+          if (document.documentElement.className.indexOf("g-resizer-v3-init") > -1) return;
+          document.documentElement.className += " g-resizer-v3-init";
+          // require IE9+
+          if (!("querySelector" in document)) return;
+          function resizer() {
+              var elements = Array.prototype.slice.call(document.querySelectorAll(".g-artboard[data-min-width]")),
+                  widthById = {};
+              elements.forEach(function(el) {
+                  var parent = el.parentNode,
+                      width = widthById[parent.id] || parent.getBoundingClientRect().width,
+                      minwidth = el.getAttribute("data-min-width"),
+                      maxwidth = el.getAttribute("data-max-width");
+                  widthById[parent.id] = width;
+  
+                  if (+minwidth <= width && (+maxwidth >= width || maxwidth === null)) {
+                      el.style.display = "block";
+                  } else {
+                      el.style.display = "none";
+                  }
+              });
+              try {
+                  if (window.parent && window.parent.$) {
+                      window.parent.$("body").trigger("resizedcontent", [window]);
+                  }
+                  if (window.require) {
+                      require(['foundation/main'], function() {
+                          require(['shared/interactive/instances/app-communicator'], function(AppCommunicator) {
+                              AppCommunicator.triggerResize();
+                          });
+                      });
+                  }
+              } catch(e) { console.log(e); }
+          }
+  
+          document.addEventListener('DOMContentLoaded', resizer);
+          // feel free to replace throttle with _.throttle, if available
+          window.addEventListener('resize', throttle(resizer, 200));        
+  
+          function throttle(func, wait) {
+              // from underscore.js
+              var _now = Date.now || function() { return new Date().getTime(); },
+                  context, args, result, timeout = null, previous = 0;
+              var later = function() {
+                  previous = _now();
+                  timeout = null;
+                  result = func.apply(context, args);
+                  if (!timeout) context = args = null;
+              };
+              return function() {
+                  var now = _now(), remaining = wait - (now - previous);
+                  context = this;
+                  args = arguments;
+                  if (remaining <= 0 || remaining > wait) {
+                      if (timeout) {
+                          clearTimeout(timeout);
+                          timeout = null;
+                      }
+                      previous = now;
+                      result = func.apply(context, args);
+                      if (!timeout) context = args = null;
+                  } else if (!timeout && options.trailing !== false) {
+                      timeout = setTimeout(later, remaining);
+                  }
+                  return result;
+              };
+          }
+  
+         
+      })();
+  </script>
+
+    <style>
+        .container {
+            /* Remove the line below if you want a wider page */
+            max-width: 850px !important;
+            font-family: 'Georgia', Times, serif;
+          
+          color: #000000;
+        }
+
+       
+
+        a {
+          color: #000000;
+          text-decoration: underline;
+        }
+
+        .subhead {
+          font-weight: bold;
+          font-size: 20px; 
+        }
+
+        .row-container {
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+          gap: 2em;
+        }
+
+        .column-container {
+          flex-grow: 1;
+        }
+
+        @media (max-width: 800px) {
+          .row-container {
+           flex-direction: column;
+          }
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+    <header>
+        <br>
+      
+    </header>
+    <main>
+
+      
+      <img src="harmonic_oscillator.gif">
+
+      <br>
+
+      <h1 class="title"><b>What's in a wave?</b></h1>
+      
+        
+        <p><i>Jake Neenan</i> | <a href="https://github.com/jakeneenan" target="_blank"> <i class="fa fa-github fa-lg"></i></a></p>
+        
+      <section>
+        <br>
+        <p>
+         I want to tell you about something lovely. Specifically, the ways in which particles, solid things, act like waves, decidedly unsolid things. The world we live in operates by rules that are weird and mysterious to us, but it doesn't care. I respect that about it. I want to make a small part of it less mysterious and more beautiful, but I'm going to start from scratch, so bear with me.
+        </p>
+        <br>
+        <p>
+        A wave is a disturbance in a medium -- like air or water -- that travels through space. Take the water wave below. Those high and low points moving across the surface are themselves the wave.
+        </p>
+        <br>
+        <img src="single_wave.gif">
+        <br>
+        <p>
+        But sometimes, waves can get in each others' way. They can either make each other bigger, smaller, or cancel each other out entirely. This is called interference. Look at the next wave. The water wave has been sent toward and gone through two small slits, we're seeing it as it exits. Notice the pattern of high and low points that forms as the two waves touch and moves to the opposite wall. This is from the waves interfering with each other as they exit their respective slits. 
+        </p>
+        <br>
+        <img src="single_slit.gif" >
+        <br>
+        <p>
+         Light waves behave in the exact same way (they're an oscillating field moving through space itself rather than air or water, but that doesn't matter for our purposes). I'm using it as a segue into the wave nature of particles because it makes more physical sense. Light spreads through space like a voice or a splash in a pool. People talk about the visible spectrum: the wavelengths -- the distance between two high points of a wave -- of light that our eyes detect. We even draw it as squiggly lines zooming into the distance.
+        </p>
+        <br>
+        <p>
+         I'm assuming this is somewhat intuitive, but it's ok if it's not. I can prove it to you. Let's imagine the last waves are light instead of water and we put a screen-like sensor at the far wall to detect how much of the wave reaches it. The more high points hit a point on the sensor, the higher the reading at that point. We can use this set up -- a classic experiment -- to visualize the pattern the light waves make as they move through space. By "use this set up" I mean run a simulation of the experiment and the sensor's output with Python.
+        </p>
+        <br>
+        <p>
+		We can start with green light, which has a wavelength of about 650 nanometers. The size also doesn't matter, just know that it's small and I'm not lying to you. We can run the simulation and look at the intensity of the light along the x axis of the sensor (it doesn't differ much vertically) and the pattern the actual light made when it reached the sensor. We would expect this to mirror the pattern we saw in the wave animation: more intensity where the high points would hit the sensor and no intensity where the lowest points would.
+		</p>
+        <br>
+        <p>
+         
+        </p>
+        <div class="row-container">
+          <div class="column-container">
+
+
+
+
+
+
+
+
+
+
+
+<!-- Generated by ai2html v0.115.5 - 2023-02-28 21:34 -->
+<!-- ai file: light_intensity.ai -->
+<style media="screen,print">
+	#g-light_intensity-box ,
+	#g-light_intensity-box .g-artboard {
+		margin:0 auto;
+	}
+	#g-light_intensity-box p {
+		margin:0;
+	}
+	#g-light_intensity-box .g-aiAbs {
+		position:absolute;
+	}
+	#g-light_intensity-box .g-aiImg {
+		position:absolute;
+		top:0;
+		display:block;
+		width:100% !important;
+	}
+	#g-light_intensity-box .g-aiSymbol {
+		position: absolute;
+		box-sizing: border-box;
+	}
+	#g-light_intensity-box .g-aiPointText p { white-space: nowrap; }
+	#g-light_intensity-Artboard_1 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-light_intensity-Artboard_1 p {
+		font-weight:500;
+		line-height:18px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:15px;
+		text-align:left;
+		color:rgb(77,77,78);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-light_intensity-Artboard_1 .g-pstyle0 {
+		line-height:22px;
+		font-size:18px;
+		color:rgb(0,0,0);
+	}
+	#g-light_intensity-Artboard_1 .g-pstyle1 {
+		line-height:14px;
+		opacity:0.83;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-light_intensity-Artboard_1 .g-pstyle2 {
+		line-height:14px;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-light_intensity-Artboard_1 .g-pstyle3 {
+		line-height:12px;
+		font-size:10px;
+	}
+
+</style>
+
+<div id="g-light_intensity-box" class="ai2html">
+
+	<!-- Artboard: Artboard_1 -->
+	<div id="g-light_intensity-Artboard_1" class="g-artboard" style="max-width: 400px;max-height: 484px" data-aspect-ratio="0.826" data-min-width="0">
+<div style="padding: 0 0 121.045% 0;"></div>
+		<img id="g-light_intensity-Artboard_1-img" class="g-light_intensity-Artboard_1-img g-aiImg" alt="" src="light_intensity-Artboard_1.png"/>
+		<div id="g-ai0-1" class="g-Layer_1 g-aiAbs" style="top:0.8261%;left:1.7762%;width:88.75%;">
+			<p class="g-pstyle0">Intensity of green light passing through a double slit</p>
+		</div>
+		<div id="g-ai0-2" class="g-Layer_1 g-aiAbs" style="top:9.9137%;left:1.7762%;width:88.75%;">
+			<p>Intensity at each point along a sensor&rsquo;s horizontal axis, normalized by maximum intensity. X axis represents micrometers from center of the sensor.</p>
+		</div>
+		<div id="g-ai0-3" class="g-Layer_1 g-aiAbs" style="top:23.7515%;left:4.5353%;width:2%;">
+			<p class="g-pstyle1">1</p>
+		</div>
+		<div id="g-ai0-4" class="g-Layer_1 g-aiAbs" style="top:48.7422%;left:1.7762%;width:4.75%;">
+			<p class="g-pstyle1">0.5</p>
+		</div>
+		<div id="g-ai0-5" class="g-Layer_1 g-aiAbs" style="top:76.0048%;left:4.4188%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-6" class="g-Layer_1 g-aiAbs" style="top:80.7551%;left:86.1386%;width:4.5%;">
+			<p class="g-pstyle2">40</p>
+		</div>
+		<div id="g-ai0-7" class="g-Layer_1 g-aiAbs" style="top:80.9616%;left:15.201%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-8" class="g-Layer_1 g-aiAbs" style="top:80.9616%;left:51.8575%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-9" class="g-Layer_1 g-aiAbs" style="top:85.6688%;left:1.7762%;width:101.75%;">
+			<p class="g-pstyle3">Slits are 2 micrometers wide and 10 micrometers apart. Sensor is 200 micrometers away.</p>
+		</div>
+	</div>
+
+</div>
+
+<!-- End ai2html - 2023-02-28 21:34 -->
+
+
+
+
+
+
+
+          </div>
+          <div class="column-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+          <!-- Generated by ai2html v0.115.5 - 2023-02-28 21:29 -->
+<!-- ai file: light_diffraction.pdf -->
+<style media="screen,print">
+	#g-light_diffraction_pdf-box ,
+	#g-light_diffraction_pdf-box .g-artboard {
+		margin:0 auto;
+	}
+	#g-light_diffraction_pdf-box p {
+		margin:0;
+	}
+	#g-light_diffraction_pdf-box .g-aiAbs {
+		position:absolute;
+	}
+	#g-light_diffraction_pdf-box .g-aiImg {
+		position:absolute;
+		top:0;
+		display:block;
+		width:100% !important;
+	}
+	#g-light_diffraction_pdf-box .g-aiSymbol {
+		position: absolute;
+		box-sizing: border-box;
+	}
+	#g-light_diffraction_pdf-box .g-aiPointText p { white-space: nowrap; }
+	#g-light_diffraction_pdf-Artboard_1 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-light_diffraction_pdf-Artboard_1 p {
+		font-weight:500;
+		line-height:12px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:10px;
+		text-align:left;
+		color:rgb(77,77,78);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-light_diffraction_pdf-Artboard_1 .g-pstyle0 {
+		line-height:22px;
+		font-size:18px;
+		color:rgb(0,0,0);
+	}
+	#g-light_diffraction_pdf-Artboard_1 .g-pstyle1 {
+		line-height:18px;
+		font-size:15px;
+	}
+	#g-light_diffraction_pdf-Artboard_1 .g-pstyle2 {
+		line-height:14px;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-light_diffraction_pdf-Artboard_1 .g-pstyle3 {
+		line-height:10px;
+		font-size:8px;
+		color:rgb(0,0,0);
+	}
+
+</style>
+
+<div id="g-light_diffraction_pdf-box" class="ai2html">
+
+	<!-- Artboard: Artboard_1 -->
+	<div id="g-light_diffraction_pdf-Artboard_1" class="g-artboard" style="max-width: 400px;max-height: 484px" data-aspect-ratio="0.827" data-min-width="0">
+<div style="padding: 0 0 120.9289% 0;"></div>
+		<img id="g-light_diffraction_pdf-Artboard_1-img" class="g-light_diffraction_pdf-Artboard_1-img g-aiImg" alt="" src="light_diffraction_pdf-Artboard_1.jpg"/>
+		<div id="g-ai0-1" class="g-Layer_1 g-aiAbs" style="top:3.3077%;left:8.0478%;width:77%;">
+			<p class="g-pstyle0">Diffraction pattern of green light passing through a double slit</p>
+		</div>
+		<div id="g-ai0-2" class="g-Layer_1 g-aiAbs" style="top:13.6444%;left:8.0478%;width:83.25%;">
+			<p class="g-pstyle1">Axes respresent micrometers from the center of the sensor</p>
+		</div>
+		<div id="g-ai0-3" class="g-Layer_1 g-aiAbs" style="top:27.2888%;left:7.9193%;width:3.25%;">
+			<p class="g-pstyle2">40</p>
+		</div>
+		<div id="g-ai0-4" class="g-Layer_1 g-aiAbs" style="top:29.9426%;left:85.266%;width:9.75%;">
+			<p class="g-pstyle3">More light</p>
+		</div>
+		<div id="g-ai0-5" class="g-Layer_1 g-aiAbs" style="top:50.0294%;left:9.6744%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-6" class="g-Layer_1 g-aiAbs" style="top:72.2556%;left:85.266%;width:9.75%;">
+			<p class="g-pstyle3">Less light</p>
+		</div>
+		<div id="g-ai0-7" class="g-Layer_1 g-aiAbs" style="top:73.3902%;left:7.0495%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-8" class="g-Layer_1 g-aiAbs" style="top:83.2461%;left:73.0602%;width:4.5%;">
+			<p class="g-pstyle2">40</p>
+		</div>
+		<div id="g-ai0-9" class="g-Layer_1 g-aiAbs" style="top:83.4528%;left:18.536%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-10" class="g-Layer_1 g-aiAbs" style="top:83.4528%;left:46.8801%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-11" class="g-Layer_1 g-aiAbs" style="top:87.5827%;left:8.0478%;width:92.75%;">
+			<p>Slits are 2 micrometers wide and 10 micrometers apart. Sensor is 200 micrometers away.</p>
+		</div>
+	</div>
+
+</div>
+
+<!-- End ai2html - 2023-02-28 21:29 -->
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+          </div>
+        </div>
+		<br>
+        <p>
+         Like we expected, we can see something similar to the pattern in the wave animation. We can call this a diffraction pattern (the broader bell curve-like structure is from diffraction, the smaller ups and downs are from interference. Again, this is less important).
+        </p>
+        
+        <br>
+        <p>
+          Now, we get to particles. Let's keep the experiment set up the same, but shoot electrons at the slit instead of light -- another classic experiment. The sensor has been tweaked to record impacts of individual electrons this time. Electrons, it should be noted, are particles. They are defined things with mass that we can measure, not a quiver on the surface of a puddle.  
+        </p>
+        <br>
+		<p>
+			It's worth thinking through what we expect to happen. In a fully classical, a.k.a normal and not super tiny, version of our experiment, where we're throwing a huge number of tennis balls through two doors at a wall, where would most of them hit? We'd expect them to go straight through and hit the wall directly across from the door they were thrown through. They would make two equally large/bright columns on our sensor.
+		</p>
+		<br>
+        <p>
+         This, however, is what actually happens.
+        </p>
+
+		<br>
+
+        <div class="row-container">
+          <div class="column-container">
+               
+
+
+
+
+
+<!-- Generated by ai2html v0.115.5 - 2023-02-28 22:38 -->
+<!-- ai file: electron_intensity.pdf -->
+<style media="screen,print">
+	#g-electron_intensity_pdf-box ,
+	#g-electron_intensity_pdf-box .g-artboard {
+		margin:0 auto;
+	}
+	#g-electron_intensity_pdf-box p {
+		margin:0;
+	}
+	#g-electron_intensity_pdf-box .g-aiAbs {
+		position:absolute;
+	}
+	#g-electron_intensity_pdf-box .g-aiImg {
+		position:absolute;
+		top:0;
+		display:block;
+		width:100% !important;
+	}
+	#g-electron_intensity_pdf-box .g-aiSymbol {
+		position: absolute;
+		box-sizing: border-box;
+	}
+	#g-electron_intensity_pdf-box .g-aiPointText p { white-space: nowrap; }
+	#g-electron_intensity_pdf-Artboard_1 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-electron_intensity_pdf-Artboard_1 p {
+		font-weight:500;
+		line-height:18px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:15px;
+		text-align:left;
+		color:rgb(78,78,79);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-electron_intensity_pdf-Artboard_1 .g-pstyle0 {
+		line-height:22px;
+		font-size:18px;
+		color:rgb(0,0,0);
+	}
+	#g-electron_intensity_pdf-Artboard_1 .g-pstyle1 {
+		line-height:14px;
+		opacity:0.83;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-electron_intensity_pdf-Artboard_1 .g-pstyle2 {
+		line-height:14px;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-electron_intensity_pdf-Artboard_1 .g-pstyle3 {
+		line-height:12px;
+		font-size:10px;
+	}
+
+</style>
+
+<div id="g-electron_intensity_pdf-box" class="ai2html">
+
+	<!-- Artboard: Artboard_1 -->
+	<div id="g-electron_intensity_pdf-Artboard_1" class="g-artboard" style="max-width: 400px;max-height: 482px" data-aspect-ratio="0.83" data-min-width="0">
+<div style="padding: 0 0 120.4671% 0;"></div>
+		<img id="g-electron_intensity_pdf-Artboard_1-img" class="g-electron_intensity_pdf-Artboard_1-img g-aiImg" alt="" src="electron_intensity_pdf-Artboard_1.png"/>
+		<div id="g-ai0-1" class="g-Layer_1 g-aiAbs" style="top:0.8301%;left:1.3481%;width:88.75%;">
+			<p class="g-pstyle0">Frequency of electron impacts after being fired through a double slit</p>
+		</div>
+		<div id="g-ai0-2" class="g-Layer_1 g-aiAbs" style="top:11.2064%;left:1.3481%;width:88.75%;">
+			<p>Impacts at each point on a sensor&rsquo;s hoprizontal axis, normalized by the maximum  number of impacts. X axis represents micrometers from center of the sensor.</p>
+		</div>
+		<div id="g-ai0-3" class="g-Layer_1 g-aiAbs" style="top:29.2611%;left:1.3481%;width:2%;">
+			<p class="g-pstyle1">1</p>
+		</div>
+		<div id="g-ai0-4" class="g-Layer_1 g-aiAbs" style="top:54.3717%;left:1.3481%;width:4.75%;">
+			<p class="g-pstyle1">0.5</p>
+		</div>
+		<div id="g-ai0-5" class="g-Layer_1 g-aiAbs" style="top:81.9726%;left:1.3481%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-6" class="g-Layer_1 g-aiAbs" style="top:86.5381%;left:85.7105%;width:4.5%;">
+			<p class="g-pstyle2">40</p>
+		</div>
+		<div id="g-ai0-7" class="g-Layer_1 g-aiAbs" style="top:86.7456%;left:14.7729%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-8" class="g-Layer_1 g-aiAbs" style="top:86.7456%;left:51.4294%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-9" class="g-Layer_1 g-aiAbs" style="top:92.5564%;left:3.6779%;width:101.75%;">
+			<p class="g-pstyle3">Slits are 2 micrometers wide and 10 micrometers apart. Sensor is 10 millimeters away.</p>
+		</div>
+	</div>
+
+</div>
+
+<!-- End ai2html - 2023-02-28 22:38 -->
+
+
+
+
+
+
+
+
+
+
+
+
+          </div>
+          <div class="column-container">
+              
+
+
+
+
+
+
+<!-- Generated by ai2html v0.115.5 - 2023-02-28 22:50 -->
+<!-- ai file: electron_diffraction.pdf -->
+<style media="screen,print">
+	#g-electron_diffraction_pdf-box ,
+	#g-electron_diffraction_pdf-box .g-artboard {
+		margin:0 auto;
+	}
+	#g-electron_diffraction_pdf-box p {
+		margin:0;
+	}
+	#g-electron_diffraction_pdf-box .g-aiAbs {
+		position:absolute;
+	}
+	#g-electron_diffraction_pdf-box .g-aiImg {
+		position:absolute;
+		top:0;
+		display:block;
+		width:100% !important;
+	}
+	#g-electron_diffraction_pdf-box .g-aiSymbol {
+		position: absolute;
+		box-sizing: border-box;
+	}
+	#g-electron_diffraction_pdf-box .g-aiPointText p { white-space: nowrap; }
+	#g-electron_diffraction_pdf-Artboard_1 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-electron_diffraction_pdf-Artboard_1 p {
+		font-weight:500;
+		line-height:12px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:10px;
+		text-align:left;
+		color:rgb(78,78,79);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-electron_diffraction_pdf-Artboard_1 .g-pstyle0 {
+		line-height:22px;
+		font-size:18px;
+		color:rgb(0,0,0);
+	}
+	#g-electron_diffraction_pdf-Artboard_1 .g-pstyle1 {
+		line-height:18px;
+		font-size:15px;
+		color:rgb(77,77,78);
+	}
+	#g-electron_diffraction_pdf-Artboard_1 .g-pstyle2 {
+		line-height:14px;
+		font-size:12px;
+		color:rgb(0,0,0);
+	}
+	#g-electron_diffraction_pdf-Artboard_1 .g-pstyle3 {
+		line-height:10px;
+		font-size:8px;
+		color:rgb(0,0,0);
+	}
+
+</style>
+
+<div id="g-electron_diffraction_pdf-box" class="ai2html">
+
+	<!-- Artboard: Artboard_1 -->
+	<div id="g-electron_diffraction_pdf-Artboard_1" class="g-artboard" style="max-width: 400px;max-height: 480px" data-aspect-ratio="0.833" data-min-width="0">
+<div style="padding: 0 0 120% 0;"></div>
+		<img id="g-electron_diffraction_pdf-Artboard_1-img" class="g-electron_diffraction_pdf-Artboard_1-img g-aiImg" alt="" src="electron_diffraction_pdf-Artboard_1.jpg"/>
+		<div id="g-ai0-1" class="g-Layer_1 g-aiAbs" style="top:0%;left:10.3405%;width:77%;">
+			<p class="g-pstyle0">Electron impacts after being fired through a double slit</p>
+		</div>
+		<div id="g-ai0-2" class="g-Layer_1 g-aiAbs" style="top:11.0417%;left:10.3405%;width:83.25%;">
+			<p class="g-pstyle1">Axes respresent micrometers from the center of the sensor</p>
+		</div>
+		<div id="g-ai0-3" class="g-Layer_1 g-aiAbs" style="top:23.3333%;left:10.3405%;width:3.25%;">
+			<p class="g-pstyle2">40</p>
+		</div>
+		<div id="g-ai0-4" class="g-Layer_1 g-aiAbs" style="top:26.8333%;left:87.6093%;width:12.25%;">
+			<p class="g-pstyle3">More impacts</p>
+		</div>
+		<div id="g-ai0-5" class="g-Layer_1 g-aiAbs" style="top:46.4583%;left:12.0955%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-6" class="g-Layer_1 g-aiAbs" style="top:69.4583%;left:87.2421%;width:13%;">
+			<p class="g-pstyle3">Fewer impacts</p>
+		</div>
+		<div id="g-ai0-7" class="g-Layer_1 g-aiAbs" style="top:69.7917%;left:9.4706%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-8" class="g-Layer_1 g-aiAbs" style="top:80.2083%;left:20.9572%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-9" class="g-Layer_1 g-aiAbs" style="top:80.2083%;left:75.4813%;width:4.5%;">
+			<p class="g-pstyle2">-40</p>
+		</div>
+		<div id="g-ai0-10" class="g-Layer_1 g-aiAbs" style="top:80.4167%;left:49.2012%;width:2%;">
+			<p class="g-pstyle2">0</p>
+		</div>
+		<div id="g-ai0-11" class="g-Layer_1 g-aiAbs" style="top:85.8333%;left:9.4706%;width:101.75%;">
+			<p>Slits are 2 micrometers wide and 10 micrometers apart. Sensor is 10 millimeters away.</p>
+		</div>
+	</div>
+
+</div>
+
+<!-- End ai2html - 2023-02-28 22:50 -->
+
+
+
+
+
+
+
+
+
+          </div>
+      </div>
+        <br>
+	
+        <p>
+			You might wonder if some electrons bounced off each other and went off course on their way to the sensor. Sure, maybe, but the part of the sensor where the most electrons struck was dead in the center, not across from the slits they were actually fired through.
+        </p>
+<br>
+<p>
+Ok, you say, electrons are small. Really small. Maybe the sensor was off. Let's take something bigger, maybe a neutron or a whole atom, and try again. I'll spoil it and tell you you'd get the same result (with some tweaks to the set up).
+</p>
+<br>
+		<p>
+			There is just no classical explanation for this. Our electrons are behaving like waves, not particles. When this was first done in real life, it validated the hypothesis of someone named Louis de Broglie. He though electrons, and everything else, had a wavelength related to their momentum.
+		</p>
+<br>
+<p>
+	 This matter-wavelength is real, so real that scientists can use electron and neutron diffraction patterns like the one above to discern the properties of the material the slits are cut out of. But it's not the whole story of the wave nature of matter, it's just a wavelength.
+</p>
+<br>
+<p>
+	For that, we have the Schrodinger equation. It can take several forms, but what it looks like isn't important. When solved, the equation yields a full wave equation that corresponds to an observable aspect of a particle, usually but not exclusively its position.
+</p>
+<br>
+<p>
+   Let's take the example of an electron with the lowest energy it can have (you can ignore that, just know I'm being diligent) trapped in a box with width L. This is restrictive and specific on purpose, partly because situations like these are some of the only ones where we can exactly solve the schrodinger equation. The wave function describing its position looks like this:
+</p>
+
+
+
+<!-- Generated by ai2html v0.115.5 - 2023-03-01 01:46 -->
+<!-- ai file: psi.pdf -->
+<style media="screen,print">
+	#g-psi_pdf-box ,
+	#g-psi_pdf-box .g-artboard {
+		margin:0 auto;
+	}
+	#g-psi_pdf-box p {
+		margin:0;
+	}
+	#g-psi_pdf-box .g-aiAbs {
+		position:absolute;
+	}
+	#g-psi_pdf-box .g-aiImg {
+		position:absolute;
+		top:0;
+		display:block;
+		width:100% !important;
+	}
+	#g-psi_pdf-box .g-aiSymbol {
+		position: absolute;
+		box-sizing: border-box;
+	}
+	#g-psi_pdf-box .g-aiPointText p { white-space: nowrap; }
+	#g-psi_pdf-Artboard_1 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-psi_pdf-Artboard_1 p {
+		font-weight:500;
+		line-height:18px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:15px;
+		text-align:left;
+		color:rgb(78,78,79);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-psi_pdf-Artboard_1 .g-pstyle0 {
+		line-height:22px;
+		font-size:18px;
+		color:rgb(0,0,0);
+	}
+	#g-psi_pdf-Artboard_1 .g-pstyle1 {
+		line-height:17px;
+		font-size:14px;
+		color:rgb(0,0,0);
+	}
+	#g-psi_pdf-Artboard_3 {
+		position:relative;
+		overflow:hidden;
+	}
+	#g-psi_pdf-Artboard_3 p {
+		font-weight:500;
+		line-height:14px;
+		opacity:1;
+		letter-spacing:0em;
+		font-size:12px;
+		text-align:left;
+		color:rgb(78,78,79);
+		text-transform:none;
+		padding-bottom:0;
+		padding-top:0;
+		mix-blend-mode:normal;
+		font-style:normal;
+		height:auto;
+		position:static;
+	}
+	#g-psi_pdf-Artboard_3 .g-pstyle0 {
+		line-height:18px;
+		font-size:15px;
+		color:rgb(0,0,0);
+	}
+	#g-psi_pdf-Artboard_3 .g-pstyle1 {
+		line-height:12px;
+		font-size:10px;
+		color:rgb(0,0,0);
+	}
+
+</style>
+
+<div id="g-psi_pdf-box" class="ai2html">
+
+	<!-- Artboard: Artboard_1 -->
+	<div id="g-psi_pdf-Artboard_1" class="g-artboard" style="width:555px; height:496.364184109186px;" data-aspect-ratio="1.118" data-min-width="555">
+<div style=""></div>
+		<img id="g-psi_pdf-Artboard_1-img" class="g-psi_pdf-Artboard_1-img g-aiImg" alt="" src="psi_pdf-Artboard_1.png"/>
+		<div id="g-ai0-1" class="g-Layer_1 g-aiAbs" style="top:3.6264%;left:6.9599%;width:86.8468%;">
+			<p class="g-pstyle0">Wave function of a ground state electron in a box of arbitrary length L</p>
+		</div>
+		<div id="g-ai0-2" class="g-Layer_1 g-aiAbs" style="top:13.9011%;left:6.9387%;width:71.5315%;">
+			<p>The function takes this form regardless of the specific value of L. The y values will change with the length, but they don&rsquo;t have a useful physical meaning. The important thing is the shape.</p>
+		</div>
+		<div id="g-ai0-3" class="g-Layer_1 g-aiAbs" style="top:92.6739%;left:14.5075%;width:2.3423%;">
+			<p class="g-pstyle1">0</p>
+		</div>
+		<div id="g-ai0-4" class="g-Layer_1 g-aiAbs" style="top:92.8754%;left:50.3694%;width:3.964%;">
+			<p class="g-pstyle1">L/2</p>
+		</div>
+		<div id="g-ai0-5" class="g-Layer_1 g-aiAbs" style="top:92.8754%;left:87.9271%;width:2.8829%;">
+			<p class="g-pstyle1">L</p>
+		</div>
+	</div>
+
+	<!-- Artboard: Artboard_3 -->
+	<div id="g-psi_pdf-Artboard_3" class="g-artboard" style="max-width: 350px;max-height: 409px" data-aspect-ratio="0.857" data-min-width="0" data-max-width="554">
+<div style="padding: 0 0 116.7309% 0;"></div>
+		<img id="g-psi_pdf-Artboard_3-img" class="g-psi_pdf-Artboard_3-img g-aiImg" alt="" src="psi_pdf-Artboard_3.png"/>
+		<div id="g-ai1-1" class="g-Layer_1 g-aiAbs" style="top:1.7133%;left:2.1171%;width:95.7143%;">
+			<p class="g-pstyle0">Wave function of a ground state electron in a box of arbitrary length L</p>
+		</div>
+		<div id="g-ai1-2" class="g-Layer_1 g-aiAbs" style="top:13.462%;left:2.1171%;width:83.1429%;">
+			<p>The function takes this form regardless of the specific value of L. The y values will change with the length, but they don&rsquo;t have a useful physical meaning. The important thing is the shape.</p>
+		</div>
+		<div id="g-ai1-3" class="g-Layer_1 g-aiAbs" style="top:94.9681%;left:11.4012%;width:2.5714%;">
+			<p class="g-pstyle1">0</p>
+		</div>
+		<div id="g-ai1-4" class="g-Layer_1 g-aiAbs" style="top:94.9681%;left:51.3332%;width:4.5714%;">
+			<p class="g-pstyle1">L/2</p>
+		</div>
+		<div id="g-ai1-5" class="g-Layer_1 g-aiAbs" style="top:95.2129%;left:93.1533%;width:3.1429%;">
+			<p class="g-pstyle1">L</p>
+		</div>
+	</div>
+
+</div>
+
+<!-- End ai2html - 2023-03-01 01:46 -->
+
+        <br>
+        <p>
+        It's reasonable to ask what we're talking about here. What's actually "waving"? What does this function even mean?
+        </p>
+        <br>
+        <p>
+         The thing about a particle that "waves," the thing about it that we can't descibe with classical mechanics but can describe with quantum mechanics, is the probability of us observing it in a certain state. In other words, the wave function (in the context of position) represents a stretch of space where a particle might exist, but, for all intents and purposes, doesn't. It's only when we look (or place a sensor in its way) that it chooses a spot in that stretch of space and pops into existence. It doesn't exist until it has to.
+		</p>
+		<br>
+		<p>
+		 This is why something solid like our electron acts like a wave with a specific wavelength in our experiment. Because the waves describing where they might be interfere with each other, changing the location in physical space in which we might actually observe the particel they describe.
+        </p>
+		<br>
+		<p>
+			The values function itself have minimal physical meaning, which is why I deleted them. Squaring the function, however, gives the probability density of its position. It represent in more specific terms the probability governed by the wave function.
+		</p>
+      
+        <br>
+		<p>
+			I just think this is so lovely. If you found this helpful or unhelpful or want to tell me why I oversimplified too much, feel free to send me a message at my GitHub link up top.
+		</p>
+        
+      </section>
+    
+    </main>
+    
+</div>
+  </body>
+</html>
